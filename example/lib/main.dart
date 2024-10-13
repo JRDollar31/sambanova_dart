@@ -102,11 +102,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildClearButton() => IconButton(
         onPressed: () {
-          // setState(() => _messages.clear());
-          // _snStream.clear();
-
+          setState(() => _messages.clear());
+          _snStream.clear();
         },
-        icon: const Icon(Icons.key_rounded, color: Colors.black),
+        icon: const Icon(Icons.delete, color: Colors.black),
       );
 
 
