@@ -41,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _buffer = '';
 
   final _snStream = SNChatStream.from(
-    apiKey: '', // Please put the API key here. Get it from https://cloud.sambanova.ai/apis.
+    apiKey: const String.fromEnvironment('sambanovaAPIKey'), // Please put the API key here. Get it from https://cloud.sambanova.ai/apis.
     modelName: 'Meta-Llama-3.1-70B-Instruct',
     systemMessage: '',
   );
@@ -102,11 +102,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildClearButton() => IconButton(
         onPressed: () {
-          setState(() => _messages.clear());
-          _snStream.clear();
+          // setState(() => _messages.clear());
+          // _snStream.clear();
+
         },
-        icon: const Icon(Icons.delete, color: Colors.black),
+        icon: const Icon(Icons.key_rounded, color: Colors.black),
       );
+
+
 
   Widget _buildFooter() => SizedBox(
         height: 150,
