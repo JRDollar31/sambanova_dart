@@ -269,14 +269,14 @@ final class SambaConfiguration {
   final bool stream;
   final String model;
   final double temperature;
-  final int maxTokens;
+  final int? maxTokens;
   final double topP;
   final String? stop;
 
   SambaConfiguration({
     this.model = 'Meta-Llama-3.1-70B-Instruct',
     this.temperature = 0.0,
-    this.maxTokens = 1 << 14,
+    this.maxTokens,
     this.topP = 0,
     this.stream = false,
     this.stop,
@@ -285,17 +285,20 @@ final class SambaConfiguration {
   factory SambaConfiguration.fromJson(Map<String, dynamic> json) => SambaConfiguration(
     model: json['model'] as String,
     temperature: json['temperature'] as double,
-    maxTokens: json['max_tokens'] as int,
+    maxTokens: json['max_tokens'] as int?,
     topP: json['top_p'] as double,
-    stop: json['stop'] as String
+    stop: json['stop'] as String?,
   );
 
-  Map<String, dynamic> toJson() => {
+Map<String, dynamic> toJson() {
+  final data = <String, dynamic>{
     'model': model,
     'temperature': temperature,
-    'max_tokens': maxTokens,
     'top_p': topP,
     'stream': stream,
-    'stop': stop,
+    if (maxTokens != null) ...{'max_tokens': maxTokens},
+    if (stop != null) ...{'stop': stop},
   };
+  return data;
+}
 }
