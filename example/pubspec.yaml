@@ -33,6 +33,7 @@ dependencies:
   sambanova:
     path: ../
   flutter_markdown: ^0.7.3+2
+  flutter_markdown_latex: ^0.3.4
   flutter_launcher_icons: ^0.13.1
 
 

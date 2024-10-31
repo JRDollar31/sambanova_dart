@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_latex/flutter_markdown_latex.dart';
 import 'package:sambanova/sambanova.dart';
 
 void main() => runApp(const SNStreamApp());
@@ -235,28 +237,35 @@ class ChatMessageWidget extends StatelessWidget {
               : message.isUserMessage 
               ? Text(message.text, style: theme.textTheme.titleMedium,)
               : MarkdownBody(
-            bulletBuilder: (parameters) {
-              if (parameters.style == BulletStyle.orderedList) {
-                return FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    "${parameters.index + 1}.",
-                    // style: MarkdownFonts.body,
-                    maxLines: 1,
-                  ),
-                );
-              } else {
-                return Transform.translate(
-                  offset: const Offset(20, 0),
-                  child: const Text(
-                    "•",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                );
-              }
-            },
+                  bulletBuilder: (parameters) {
+                    if (parameters.style == BulletStyle.orderedList) {
+                      return FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          "${parameters.index + 1}.",
+                          // style: MarkdownFonts.body,
+                          maxLines: 1,
+                        ),
+                      );
+                    } else {
+                      return Transform.translate(
+                        offset: const Offset(20, 0),
+                        child: const Text(
+                          "•",
+                          style: TextStyle(fontSize: 24),
+                        ),
+                      );
+                    }
+                  },
                   data: message.text,
                   styleSheet: createCustomMarkdownStyleSheet(context),
+                  builders: {
+                    'latex': LatexElementBuilder(),
+                  },
+                  extensionSet: md.ExtensionSet(
+                    [LatexBlockSyntax()],
+                    [LatexInlineSyntax()],
+                  ),
                 ),
         ),
       ],
