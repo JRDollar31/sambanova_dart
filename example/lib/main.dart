@@ -6,6 +6,8 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_markdown_latex/flutter_markdown_latex.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:sambanova/sambanova.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const SNStreamApp());
 
@@ -40,25 +42,49 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   Timer? _debounceTimer;
   String _buffer = '';
+  String? _apiKey;
 
-  final _snStream = SNChatStream.from(
-    apiKey: const String.fromEnvironment('sambanovaAPIKey'), // Please put the API key here. Get it from https://cloud.sambanova.ai/apis.
-    modelName: 'Meta-Llama-3.1-70B-Instruct',
-    systemMessage: '',
-  );
+  late SNChatStream _snStream;
+
+  // final _snStream = SNChatStream.from(
+  //   apiKey: const String.fromEnvironment('sambanovaAPIKey'), // Please put the API key here. Get it from https://cloud.sambanova.ai/apis.
+  //   modelName: 'Meta-Llama-3.1-70B-Instruct',
+  //   systemMessage: '',
+  // );
 
   @override
   void initState() {
     super.initState();
+    _initializeStream();
+  }
+
+  Future<void> _initializeStream() async {
+    await _loadApiKey();
+    _snStream = SNChatStream.from(
+      apiKey: _apiKey ?? '',
+      modelName: 'Meta-Llama-3.1-70B-Instruct',
+      systemMessage: '',
+    );
     _snStream.listen(
       onData: _handleResponseDelta,
       onDone: () {},
       onError: _handleResponseError,
     );
+    setState(() {});
   }
 
+  void _launchAPIKeyURL() async {
+    final url = Uri.parse('https://cloud.sambanova.ai/apis');
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _loadApiKey() async {
+    _apiKey = await _secureStorage.read(key: 'sambanovaAPIKey');
+    setState(() {});
+  }
   void _handleSubmitted(String text) async {
     if (text.trim().isEmpty) return;
     _buffer = '';
@@ -77,7 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
         title: const Text('SN'),
         backgroundColor: Theme.of(context).cardColor,
         surfaceTintColor: Theme.of(context).cardColor,
-        actions: [_buildClearButton()],
+        actions: [_buildKeyManagementButton(), _buildClearButton()],
       ),
       body: SafeArea(
         child: Column(
@@ -111,7 +137,48 @@ class _ChatScreenState extends State<ChatScreen> {
         icon: const Icon(Icons.delete, color: Colors.black),
       );
 
+  Widget _buildKeyManagementButton() => IconButton(
+    onPressed: () => _showKeyManagementDialog(),
+    icon: const Icon(Icons.manage_accounts, color: Colors.black),
+  );
 
+  Future<void> _showKeyManagementDialog() async {
+    final TextEditingController keyController = TextEditingController(text: _apiKey != null ? _apiKey : '');
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Manage API Key'),
+          content: TextField(
+            controller: keyController,
+            obscureText: true,
+            decoration: const InputDecoration(hintText: 'Enter API Key'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _launchAPIKeyURL();
+              },
+              child: const Text('Get API Key'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                _apiKey = keyController.text;
+                await _secureStorage.write(key: 'sambanovaAPIKey', value: _apiKey);
+                _initializeStream();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildFooter() => SizedBox(
         height: 150,
@@ -283,10 +350,10 @@ class CodeElementBuilder extends MarkdownElementBuilder {
       language: element.attributes['class']?.split('-').last ?? 'plaintext',
       theme: myCodeTheme,
       padding: const EdgeInsets.all(8.0),
-      // textStyle: const TextStyle(
-      //   fontFamily: 'monospace',
-      //   fontSize: 14.0,
-      // ),
+      textStyle: const TextStyle(
+        fontFamily: 'monospace',
+        fontSize: 16.0,
+      ),
     );
   }
 }
