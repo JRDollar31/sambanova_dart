@@ -143,7 +143,7 @@ class _ChatScreenState extends State<ChatScreen> {
   );
 
   Future<void> _showKeyManagementDialog() async {
-    final TextEditingController keyController = TextEditingController(text: _apiKey != null ? _apiKey : '');
+    final TextEditingController keyController = TextEditingController(text: _apiKey ?? '');
     await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -398,7 +398,7 @@ MarkdownStyleSheet createCustomMarkdownStyleSheet(BuildContext context) => Markd
 
 const myCodeTheme = {
   'root':
-  TextStyle(backgroundColor: Color(0xffffff), color: Color(0xff000000)),
+  TextStyle(backgroundColor: Color(0x00ffffff), color: Color(0xff000000)),
   'comment': TextStyle(color: Color(0xff880000)),
   'quote': TextStyle(color: Color(0xff880000)),
   'keyword': TextStyle(color: Color(0xff000088)),
